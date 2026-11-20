@@ -21,6 +21,7 @@ export interface Demanda {
   criador: Usuario;
   criado_em: string;
   atualizado_em: string;
+  total_comentarios: number;
   comentarios: Comentario[];
   historico: HistoricoStatus[];
 }

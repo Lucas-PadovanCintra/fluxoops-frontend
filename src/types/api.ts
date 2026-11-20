@@ -12,6 +12,7 @@ export interface DemandaAPI {
   criador_id: string;
   criado_em: string;
   atualizado_em: string;
+  total_comentarios: number;
 }
 
 export interface DemandaCreateAPI {

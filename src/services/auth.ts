@@ -1,8 +1,7 @@
-
 import { apiRequest } from "./api";
 import type { Usuario } from "@/types/demanda";
 
-interface LoginResponse {
+export interface LoginResponse {
   access_token: string;
   token_type: string;
   usuario: Usuario;
@@ -18,5 +17,19 @@ export async function login(
       "Content-Type": "application/json",
     },
     body: JSON.stringify({ email, senha }),
+  });
+}
+
+export async function cadastro(
+  nome: string,
+  email: string,
+  senha: string
+): Promise<LoginResponse> {
+  return apiRequest<LoginResponse>("/api/auth/cadastro", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ nome, email, senha }),
   });
 }

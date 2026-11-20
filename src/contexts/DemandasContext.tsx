@@ -176,6 +176,7 @@ export function DemandasProvider({ children }: { children: React.ReactNode }) {
         demanda.id === demandaId
           ? {
               ...demanda,
+              total_comentarios: demanda.total_comentarios + 1,
               comentarios: [
                 ...demanda.comentarios,
                 comentarioAdaptado,
@@ -215,6 +216,12 @@ export function DemandasProvider({ children }: { children: React.ReactNode }) {
       status: novoStatus,
     });
 
+    const historicoAPI = await listarHistorico(demandaId);
+
+    const historicoAtualizado = historicoAPI.map((registro) =>
+      adaptarHistorico(registro, usuariosReais)
+    );
+
     setDemandas((prev) =>
       prev.map((d) =>
         d.id === demandaId
@@ -222,7 +229,7 @@ export function DemandasProvider({ children }: { children: React.ReactNode }) {
               ...d,
               ...adaptarDemanda(demandaAtualizada, usuariosReais),
               comentarios: d.comentarios,
-              historico: d.historico,
+              historico: historicoAtualizado,
             }
           : d
       )

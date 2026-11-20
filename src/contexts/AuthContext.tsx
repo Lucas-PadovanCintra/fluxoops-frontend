@@ -1,7 +1,11 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";
 import type { Usuario } from "@/types/demanda";
-import { login as loginApi } from "@/services/auth";
+import {
+  login as loginApi,
+  cadastro as cadastroApi,
+} from "@/services/auth";
+import type { LoginResponse } from "@/services/auth";
 import { apiRequest, ApiError } from "@/services/api";
 
 interface AuthContextType {
@@ -9,6 +13,7 @@ interface AuthContextType {
   carregando: boolean;
   erroAutenticacao: string | null;
   login: (email: string, senha: string) => Promise<void>;
+  cadastro: (nome: string, email: string, senha: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -18,7 +23,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [usuario, setUsuario] = useState<Usuario | null>(null);
   const [carregando, setCarregando] = useState(true);
   const [erroAutenticacao, setErroAutenticacao] = useState<string | null>(null);
-
 
   useEffect(() => {
     let ativo = true;
@@ -67,21 +71,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  function autenticar(resposta: LoginResponse): void {
+    sessionStorage.setItem("fluxoops_token", resposta.access_token);
+    setUsuario(resposta.usuario);
+    setErroAutenticacao(null);
+  }
 
   async function login(email: string, senha: string): Promise<void> {
     const resposta = await loginApi(email, senha);
+    autenticar(resposta);
+  }
 
-    sessionStorage.setItem("fluxoops_token", resposta.access_token);
-    setUsuario(resposta.usuario);
+  async function cadastro(
+    nome: string,
+    email: string,
+    senha: string
+  ): Promise<void> {
+    const resposta = await cadastroApi(nome, email, senha);
+    autenticar(resposta);
   }
 
   function logout(): void {
     sessionStorage.removeItem("fluxoops_token");
     setUsuario(null);
+    setErroAutenticacao(null);
   }
 
   return (
-    <AuthContext.Provider value={{ usuario, carregando, erroAutenticacao, login, logout }}>
+    <AuthContext.Provider
+      value={{
+        usuario,
+        carregando,
+        erroAutenticacao,
+        login,
+        cadastro,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

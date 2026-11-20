@@ -31,10 +31,10 @@ export function DemandaCard({ demanda }: { demanda: Demanda }) {
               {formatDistanceToNow(new Date(demanda.criado_em), { addSuffix: true, locale: ptBR })}
             </div>
             <div className="flex items-center gap-3">
-              {demanda.comentarios.length > 0 && (
+              {demanda.total_comentarios > 0 && (
                 <span className="flex items-center gap-1">
                   <MessageSquare className="w-3 h-3" />
-                  {demanda.comentarios.length}
+                  {demanda.total_comentarios}
                 </span>
               )}
               {demanda.responsavel && (

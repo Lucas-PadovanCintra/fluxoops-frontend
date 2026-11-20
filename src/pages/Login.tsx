@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -90,6 +90,15 @@ export default function Login() {
             <Button type="submit" className="w-full" disabled={carregando}>
               {carregando ? "Entrando..." : "Entrar"}
             </Button>
+            <p className="text-center text-sm text-muted-foreground">
+              Ainda não tem uma conta?{" "}
+              <Link
+                to="/cadastro"
+                className="text-primary font-medium hover:underline"
+              >
+                Cadastre-se
+              </Link>
+            </p>
           </form>
         </CardContent>
       </Card>

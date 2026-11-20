@@ -41,6 +41,7 @@ export function adaptarDemanda(
     criador,
     criado_em: demandaAPI.criado_em,
     atualizado_em: demandaAPI.atualizado_em,
+    total_comentarios: demandaAPI.total_comentarios,
     comentarios: [],
     historico: [],
   };
