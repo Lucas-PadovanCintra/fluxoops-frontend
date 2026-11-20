@@ -5,20 +5,59 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Trash2, Send, History } from "lucide-react";
-import { useState } from "react";
+import { ArrowLeft, Trash2, Send, History, Pencil } from "lucide-react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Status } from "@/types/demanda";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import { toast } from "sonner";
 
 const statusOptions: Status[] = ["Aberta", "Em andamento", "Bloqueada", "Concluída"];
 
 export default function DemandaDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { demandas, deleteDemanda, addComentario, changeStatus } = useDemandas();
+  const {
+    demandas,
+    usuarios,
+    carregando,
+    deleteDemanda,
+    addComentario,
+    carregarComentarios,
+    changeStatus,
+    carregarHistorico,
+  } = useDemandas();
   const [novoComentario, setNovoComentario] = useState("");
+  const [enviandoComentario, setEnviandoComentario] = useState(false);
+
+  useEffect(() => {
+    if (!id || carregando || usuarios.length === 0) return;
+
+    carregarHistorico(id).catch((error) => {
+      console.error("Erro ao carregar histórico:", error);
+      toast.error("Não foi possível carregar o histórico da demanda.");
+    });
+  }, [id, carregando, usuarios, carregarHistorico]);
+
+  useEffect(() => {
+    if (!id || carregando || usuarios.length === 0) return;
+
+    carregarComentarios(id).catch((error) => {
+      console.error("Erro ao carregar comentários:", error);
+      toast.error("Não foi possível carregar os comentários da demanda.");
+    });
+  }, [id, carregando, usuarios, carregarComentarios]);
 
   const demanda = demandas.find((d) => d.id === id);
   if (!demanda) {
@@ -30,15 +69,48 @@ export default function DemandaDetail() {
     );
   }
 
-  const handleDelete = () => {
-    deleteDemanda(demanda.id);
-    navigate("/demandas");
+  const handleDelete = async () => {
+    try {
+      await deleteDemanda(demanda.id);
+
+      toast.success("Demanda excluída com sucesso!");
+      navigate("/demandas");
+    } catch (error) {
+      console.error("Erro ao excluir demanda:", error);
+      toast.error("Não foi possível excluir a demanda.");
+    }
   };
 
-  const handleAddComentario = () => {
-    if (!novoComentario.trim()) return;
-    addComentario(demanda.id, novoComentario.trim());
-    setNovoComentario("");
+  const handleAddComentario = async () => {
+    const texto = novoComentario.trim();
+
+    if (!texto || enviandoComentario) return;
+
+    setEnviandoComentario(true);
+
+    try {
+      await addComentario(demanda.id, texto);
+
+      setNovoComentario("");
+      toast.success("Comentário enviado com sucesso!");
+    } catch (error) {
+      console.error("Erro ao enviar comentário:", error);
+      toast.error("Não foi possível enviar o comentário.");
+    } finally {
+      setEnviandoComentario(false);
+    }
+  };
+
+  const handleChangeStatus = async (novoStatus: Status) => {
+    if (novoStatus === demanda.status) return;
+
+    try {
+      await changeStatus(demanda.id, novoStatus);
+      toast.success("Status atualizado com sucesso!");
+    } catch (error) {
+      console.error("Erro ao atualizar status:", error);
+      toast.error("Não foi possível atualizar o status da demanda.");
+    }
   };
 
   return (
@@ -57,7 +129,15 @@ export default function DemandaDetail() {
           </div>
         </div>
         <div className="flex gap-2">
-          <Select value={demanda.status} onValueChange={(v) => changeStatus(demanda.id, v as Status)}>
+          <Button
+            variant="outline"
+            className="gap-2"
+            onClick={() => navigate(`/demandas/${demanda.id}/editar`)}
+          >
+            <Pencil className="w-4 h-4" />
+            Editar
+          </Button>
+          <Select value={demanda.status} onValueChange={(v) => void handleChangeStatus(v as Status)}>
             <SelectTrigger className="w-[170px]"><SelectValue /></SelectTrigger>
             <SelectContent>
               {statusOptions.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
@@ -148,8 +228,9 @@ export default function DemandaDetail() {
               className="min-h-[80px]"
             />
           </div>
-          <Button onClick={handleAddComentario} disabled={!novoComentario.trim()} className="gap-2">
-            <Send className="w-4 h-4" />Enviar
+          <Button onClick={handleAddComentario} disabled={!novoComentario.trim() || enviandoComentario} className="gap-2">
+            <Send className="w-4 h-4" />
+            {enviandoComentario ? "Enviando..." : "Enviar"}
           </Button>
         </CardContent>
       </Card>

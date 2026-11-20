@@ -10,6 +10,9 @@ import DemandasList from "@/pages/DemandasList";
 import DemandaDetail from "@/pages/DemandaDetail";
 import NovaDemanda from "@/pages/NovaDemanda";
 import NotFound from "@/pages/NotFound";
+import { AuthProvider } from "@/contexts/AuthContext";
+import Login from "@/pages/Login";
+import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -19,17 +22,25 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <DemandasProvider>
-          <Routes>
-            <Route element={<AppLayout />}>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/demandas" element={<DemandasList />} />
-              <Route path="/demandas/nova" element={<NovaDemanda />} />
-              <Route path="/demandas/:id" element={<DemandaDetail />} />
-            </Route>
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </DemandasProvider>
+        <AuthProvider>
+          <DemandasProvider>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+
+              <Route element={<ProtectedRoute />}>
+                <Route element={<AppLayout />}>
+                  <Route path="/" element={<Dashboard />} />
+                  <Route path="/demandas" element={<DemandasList />} />
+                  <Route path="/demandas/nova" element={<NovaDemanda />} />
+                  <Route path="/demandas/:id/editar" element={<NovaDemanda />} />
+                  <Route path="/demandas/:id" element={<DemandaDetail />} />
+                </Route>
+              </Route>
+
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </DemandasProvider>
+        </AuthProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { useDemandas } from "@/contexts/DemandasContext";
 import { sugerirCategoriaEPrioridade } from "@/lib/sugestao";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -17,13 +17,35 @@ const prioridades: Prioridade[] = ["Baixa", "Média", "Alta", "Crítica"];
 
 export default function NovaDemanda() {
   const navigate = useNavigate();
-  const { addDemanda, usuarios } = useDemandas();
+  const { id } = useParams();
+
+  const { addDemanda, updateDemanda, usuarios, demandas, carregando } = useDemandas();
+
+  const modoEdicao = Boolean(id);
+  const demandaExistente = demandas.find((demanda) => demanda.id === id);
+  const demandaPreenchidaId = useRef<string | null>(null);
   const [titulo, setTitulo] = useState("");
   const [descricao, setDescricao] = useState("");
   const [categoria, setCategoria] = useState<Categoria>("Feature");
   const [prioridade, setPrioridade] = useState<Prioridade>("Média");
   const [responsavelId, setResponsavelId] = useState<string>("");
   const [sugestao, setSugestao] = useState<{ categoria: Categoria; prioridade: Prioridade } | null>(null);
+
+  useEffect(() => {
+    if (!modoEdicao || !demandaExistente) return;
+
+    if (demandaPreenchidaId.current === demandaExistente.id) {
+      return;
+    }
+
+    setTitulo(demandaExistente.titulo);
+    setDescricao(demandaExistente.descricao);
+    setCategoria(demandaExistente.categoria);
+    setPrioridade(demandaExistente.prioridade);
+    setResponsavelId(demandaExistente.responsavel?.id ?? "");
+
+    demandaPreenchidaId.current = demandaExistente.id;
+  }, [modoEdicao, demandaExistente?.id]);
 
   useEffect(() => {
     const text = `${titulo} ${descricao}`.trim();
@@ -42,27 +64,55 @@ export default function NovaDemanda() {
     toast.success("Sugestão aplicada!");
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!titulo.trim()) { toast.error("Título é obrigatório"); return; }
 
-    addDemanda({
+    if (!titulo.trim()) {
+      toast.error("Título é obrigatório");
+      return;
+    }
+
+    if (modoEdicao && !demandaExistente) {
+      toast.error("Demanda não encontrada.");
+      return;
+    }
+
+    const dados = {
       titulo: titulo.trim(),
       descricao: descricao.trim(),
       categoria,
       prioridade,
-      status: "Aberta" as Status,
-      responsavel: responsavelId ? usuarios.find((u) => u.id === responsavelId) || null : null,
-    });
-    toast.success("Demanda criada com sucesso!");
-    navigate("/demandas");
+      responsavel: responsavelId
+        ? usuarios.find((u) => u.id === responsavelId) ?? null
+        : null,
+    };
+
+    try {
+      if (modoEdicao && demandaExistente) {
+        await updateDemanda(demandaExistente.id, dados);
+
+        toast.success("Demanda atualizada com sucesso!");
+        navigate(`/demandas/${demandaExistente.id}`);
+      } else {
+        await addDemanda({
+          ...dados,
+          status: "Aberta" as Status,
+        });
+
+        toast.success("Demanda criada com sucesso!");
+        navigate("/demandas");
+      }
+    } catch (error) {
+      console.error("Erro ao salvar demanda:", error);
+      toast.error("Não foi possível salvar a demanda. Tente novamente.");
+    }
   };
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold">Nova Demanda</h1>
-        <p className="text-muted-foreground text-sm">Preencha os dados para criar uma nova demanda</p>
+        <h1 className="text-2xl font-bold"> {modoEdicao ? "Editar Demanda" : "Nova Demanda"} </h1>
+        <p className="text-muted-foreground text-sm">{modoEdicao ? "Atualize as informações da demanda" : "Preencha os dados para criar uma nova demanda"}</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -132,7 +182,7 @@ export default function NovaDemanda() {
 
         <div className="flex gap-3 justify-end">
           <Button type="button" variant="outline" onClick={() => navigate(-1)}>Cancelar</Button>
-          <Button type="submit">Criar Demanda</Button>
+          <Button type="submit" disabled={modoEdicao && (carregando || !demandaExistente)}>{modoEdicao ? "Salvar Alterações" : "Criar Demanda"}</Button>
         </div>
       </form>
     </div>

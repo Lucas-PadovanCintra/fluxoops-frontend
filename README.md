@@ -1,200 +1,203 @@
-# FlowBoard Pro
+# FluxoOps — Frontend
 
-Quero criar uma aplicação web full stack completa, profissional e pronta para portfólio, chamada "FluxoOps".
+Interface web do **FluxoOps**, uma aplicação Full Stack para gestão colaborativa de demandas e solicitações internas.
 
-OBJETIVO DO PRODUTO
+O sistema permite que equipes organizem solicitações, acompanhem o andamento das atividades, atribuam responsáveis, registrem comentários e visualizem indicadores operacionais em um dashboard.
 
-A aplicação deve ser um sistema de gestão de demandas e solicitações internas para equipes, com foco em organização operacional, acompanhamento de fluxo de trabalho e visualização de indicadores. A proposta é parecer uma solução real de negócio, com uso profissional.
+Este repositório contém o **frontend**, desenvolvido com React, TypeScript e Vite, integrado a uma API REST construída com Python, FastAPI e PostgreSQL.
 
-STACK DESEJADA
+**Backend:** [FluxoOps API](https://github.com/Lucas-PadovanCintra/fluxoops-api)
 
-- Back-end em Python com FastAPI
+> Projeto de portfólio voltado à demonstração de habilidades em desenvolvimento Full Stack, integração com APIs REST, autenticação, gerenciamento de estado e construção de interfaces web.
 
-- Front-end em React com JavaScript
+## Tecnologias
 
-- HTML + CSS
+| Tecnologia | Utilização |
+|---|---|
+| React | Construção da interface |
+| TypeScript | Tipagem e organização do código |
+| Vite | Ambiente de desenvolvimento e build |
+| Tailwind CSS | Estilização |
+| shadcn/ui | Componentes de interface |
+| React Router | Navegação entre páginas |
+| API REST | Comunicação com o backend FastAPI |
 
-- Bootstrap para layout e componentes visuais
+## Funcionalidades
 
-- Banco de dados PostgreSQL
+- Cadastro e autenticação de usuários.
+- Login e logout com autenticação JWT.
+- Proteção de páginas que exigem autenticação.
+- Dashboard com indicadores de demandas.
+- Listagem e visualização detalhada de demandas.
+- Criação e edição de demandas.
+- Classificação por categoria, prioridade e status.
+- Atribuição de responsáveis.
+- Busca e filtros para organização das demandas.
+- Visualização e registro de comentários.
+- Consulta do histórico de alterações de status.
+- Sugestão de categoria e prioridade para novas demandas.
+- Interface responsiva com componentes reutilizáveis.
 
-- SQLAlchemy no back-end
+As informações são obtidas por meio da API FastAPI. O frontend não depende de dados fictícios locais para executar as funcionalidades principais.
 
-- API REST bem estruturada
+## Arquitetura
 
-- Autenticação com JWT
+O frontend organiza suas responsabilidades em páginas, componentes, contextos, serviços e tipos TypeScript.
 
-- Testes básicos no back-end com Pytest
+```text
+src/
+├── components/       # Componentes reutilizáveis
+│   └── auth/         # Componentes de autenticação
+├── contexts/         # Estado e contextos React
+├── pages/            # Páginas da aplicação
+├── services/         # Comunicação com a API
+├── types/            # Tipos TypeScript
+└── App.tsx           # Configuração principal da aplicação
+```
 
-- Estrutura pronta para deploy
+A comunicação com o backend é realizada por serviços responsáveis pelas requisições HTTP.
 
-- Código organizado e profissional
+Os contextos React gerenciam informações compartilhadas, como autenticação e demandas.
 
-- README técnico completo
+## Executando localmente
 
-FUNCIONALIDADES PRINCIPAIS
+### Pré-requisitos
 
-1. Autenticação
+- Node.js e npm.
+- Backend FluxoOps configurado e em execução.
+- PostgreSQL configurado para o backend.
 
-- Cadastro de usuário
+### 1. Clonar o repositório
 
-- Login e logout
+```bash
+git clone https://github.com/Lucas-PadovanCintra/fluxoops-frontend.git
+cd fluxoops-frontend
+```
 
-- Perfis de usuário: admin e usuário comum
+### 2. Instalar as dependências
 
-2. Gestão de demandas
+```bash
+npm install
+```
 
-- Criar demanda
+### 3. Configurar a conexão com a API
 
-- Editar demanda
+Crie um arquivo `.env.local` a partir do exemplo:
 
-- Excluir demanda
+```bash
+cp .env.example .env.local
+```
 
-- Visualizar lista de demandas
+O arquivo deve conter:
 
-- Visualizar detalhes de uma demanda
+```dotenv
+VITE_API_URL=http://localhost:8000
+```
 
-- Campos: título, descrição, categoria, prioridade, status, responsável, data de criação, data de atualização
+Essa variável define o endereço do backend FastAPI utilizado pelo frontend.
 
-3. Regras de negócio
+Caso o backend esteja sendo executado em outro endereço, ajuste o valor de `VITE_API_URL`.
 
-- Status possíveis: Aberta, Em andamento, Bloqueada, Concluída
+O arquivo `.env.local` contém configurações específicas do ambiente e não deve ser enviado ao GitHub.
 
-- Prioridades possíveis: Baixa, Média, Alta, Crítica
+### 4. Iniciar o backend
 
-- Registrar histórico de mudanças de status
+O frontend depende da API FluxoOps.
 
-- Permitir comentários em cada demanda
+Siga as instruções de instalação do repositório [fluxoops-api](https://github.com/Lucas-PadovanCintra/fluxoops-api).
 
-4. Dashboard
+Por padrão, a API deve estar disponível em:
 
-- Total de demandas
+`http://localhost:8000`
 
-- Quantidade por status
+A documentação interativa pode ser acessada em:
 
-- Quantidade por prioridade
+`http://localhost:8000/docs`
 
-- Cards e gráficos simples
+### 5. Iniciar o frontend
 
-- Indicadores visuais de produtividade
-
-5. Busca e filtros
-
-- Busca por texto
-
-- Filtro por status
-
-- Filtro por prioridade
-
-- Filtro por categoria
-
-- Filtro por responsável
-
-6. Interface
-
-- Interface limpa, moderna, responsiva e com aparência profissional
-
-- Layout com navbar, sidebar e dashboard
-
-- Visual com cara de sistema B2B
-
-- Boa organização visual com Bootstrap
-
-DIFERENCIAL
-
-Adicionar uma funcionalidade simples de sugestão inteligente:
-
-- ao criar uma demanda, o sistema pode sugerir automaticamente categoria e prioridade com base no texto digitado
-
-- essa sugestão pode ser implementada com regras simples, sem depender obrigatoriamente de API externa
-
-- deixar a arquitetura preparada para futura integração com OpenAI
-
-REQUISITOS TÉCNICOS
-
-- Separar claramente front-end e back-end
-
-- Criar estrutura de pastas profissional
-
-- Organizar o back-end em models, schemas, services e routers
-
-- Criar componentes reutilizáveis no React
-
-- Tratar erros de forma amigável
-
-- Criar dados iniciais (seed) para facilitar testes
-
-- Adicionar documentação automática da API
-
-- Criar README completo com:
-
-  - visão geral do projeto
-
-  - stack utilizada
-
-  - como rodar localmente
-
-  - variáveis de ambiente
-
-  - endpoints principais
-
-  - estrutura de pastas
-
-  - ideias de melhorias futuras
-
-  - sugestões de deploy
-
-IMPORTANTE
-
-Quero que o projeto seja construído com foco em portfólio para vaga júnior de desenvolvedor full stack. Ele deve demonstrar:
-
-- domínio de API REST
-
-- integração front-end + back-end
-
-- banco de dados relacional
-
-- autenticação
-
-- organização de código
-
-- testes
-
-- noções de produto real
-
-- visual profissional
-
-ENTREGA ESPERADA
-
-- estrutura completa do projeto
-
-- código inicial funcional
-
-- instruções para rodar
-
-- dados de seed
-
-- README profissional
-
-- sugestão de deploy
-
-This project was built with [Lovable](https://lovable.dev).
-
-## Build with Lovable
-
-Continue developing this project in the [Lovable editor](https://lovable.dev/projects/61e7736f-5110-40c6-9865-713ac9a939e0).
-
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: every change made in Lovable is committed straight to this repository.
-- **Full ownership**: this code is yours. Push to `main` on GitHub and your changes sync back into Lovable, ready for your next prompt.
-
-## Development
-
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
-
-```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
+```bash
 npm run dev
 ```
+
+O Vite exibirá no terminal o endereço local da aplicação, normalmente:
+
+`http://localhost:5173`
+
+Acesse esse endereço no navegador.
+
+## Autenticação e dados demonstrativos
+
+O backend disponibiliza usuários demonstrativos para utilização em ambiente local.
+
+| E-mail | Senha | Perfil |
+|---|---|---|
+| admin@fluxoops.com | admin123 | Administrador |
+| maria@fluxoops.com | senha123 | Usuário |
+| joao@fluxoops.com | senha123 | Usuário |
+
+Para disponibilizar esses usuários, execute o script de inicialização de dados do backend:
+
+```bash
+python seed.py
+```
+
+As credenciais acima destinam-se exclusivamente ao ambiente local de demonstração e não devem ser utilizadas em produção.
+
+## Integração com o backend
+
+O frontend consome os endpoints REST do FluxoOps para:
+
+- Autenticação e identificação do usuário.
+- Consulta e gerenciamento de demandas.
+- Listagem de usuários e responsáveis.
+- Registro e consulta de comentários.
+- Consulta do histórico das demandas.
+- Indicadores do dashboard.
+- Sugestão de classificação.
+
+A autenticação utiliza tokens JWT fornecidos pelo backend.
+
+## Validação e build
+
+Para verificar os tipos TypeScript:
+
+```bash
+npx tsc --noEmit
+```
+
+Para gerar a versão de produção:
+
+```bash
+npm run build
+```
+
+Os arquivos compilados são gerados no diretório `dist/`.
+
+Na última validação local, a verificação TypeScript e o build de produção foram concluídos com sucesso.
+
+## Backend e testes
+
+Os testes automatizados da API estão disponíveis no repositório [fluxoops-api](https://github.com/Lucas-PadovanCintra/fluxoops-api).
+
+O backend utiliza Pytest e um banco PostgreSQL separado para executar seus testes sem modificar os dados da aplicação principal.
+
+## Desenvolvimento do projeto
+
+A interface inicial foi criada com auxílio da plataforma Lovable e posteriormente adaptada para integração com o backend FastAPI.
+
+O desenvolvimento incluiu a substituição dos dados fictícios por requisições reais à API, implementação do fluxo de autenticação, integração das funcionalidades e ajustes na organização do código.
+
+## Possíveis melhorias futuras
+
+- Testes automatizados de componentes e fluxos do frontend.
+- Melhorias de acessibilidade.
+- Otimização do tamanho dos arquivos de produção.
+- Recuperação de senha.
+- Notificações em tempo real.
+- Deploy público da aplicação.
+- Pipeline de integração contínua.
+
+---
+
+**FluxoOps** — Projeto de portfólio Full Stack com React, TypeScript, FastAPI e PostgreSQL.

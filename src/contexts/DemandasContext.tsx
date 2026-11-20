@@ -1,82 +1,271 @@
-import React, { createContext, useContext, useState, useCallback } from "react";
-import { Demanda, Usuario, Status, Prioridade, Categoria, Comentario } from "@/types/demanda";
-import { mockDemandas, usuarios } from "@/data/mockData";
+
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+} from "react";
+
+import {
+  Demanda,
+  Usuario,
+  Status,
+  Prioridade,
+  Categoria,
+  Comentario,
+} from "@/types/demanda";
+
+import { listarUsuarios } from "@/services/usuarios";
+import { listarDemandas, criarDemanda, atualizarDemanda, listarHistorico, excluirDemanda } from "@/services/demandas";
+import { adaptarDemanda, adaptarHistorico, adaptarComentario } from "@/services/demandasAdapter";
+import { listarComentarios, criarComentario } from "@/services/comentarios";
+import { useAuth } from "@/contexts/AuthContext";
+
 
 interface DemandasContextType {
   demandas: Demanda[];
   usuarios: Usuario[];
-  currentUser: Usuario;
-  addDemanda: (d: Omit<Demanda, "id" | "criado_em" | "atualizado_em" | "criador" | "comentarios" | "historico">) => void;
-  updateDemanda: (id: string, updates: Partial<Demanda>) => void;
-  deleteDemanda: (id: string) => void;
-  addComentario: (demandaId: string, texto: string) => void;
-  changeStatus: (demandaId: string, novoStatus: Status) => void;
+  carregando: boolean;
+  erro: string | null;
+  addDemanda: (d: Omit<Demanda, "id" | "criado_em" | "atualizado_em" | "criador" | "comentarios" | "historico">) => Promise<void>;
+  updateDemanda: (id: string, updates: Partial<Demanda>) => Promise<void>;
+  deleteDemanda: (id: string) => Promise<void>;
+  addComentario: (demandaId: string, texto: string) => Promise<void>;
+  carregarComentarios: (demandaId: string) => Promise<void>;
+  changeStatus: (demandaId: string, novoStatus: Status) => Promise<void>;
+  carregarHistorico: (demandaId: string) => Promise<void>;
 }
 
 const DemandasContext = createContext<DemandasContextType | null>(null);
 
 export function DemandasProvider({ children }: { children: React.ReactNode }) {
-  const [demandas, setDemandas] = useState<Demanda[]>(mockDemandas);
-  const currentUser = usuarios[0];
 
-  const addDemanda = useCallback((d: Omit<Demanda, "id" | "criado_em" | "atualizado_em" | "criador" | "comentarios" | "historico">) => {
-    const now = new Date().toISOString();
-    const nova: Demanda = {
-      ...d,
-      id: crypto.randomUUID(),
-      criador: currentUser,
-      criado_em: now,
-      atualizado_em: now,
-      comentarios: [],
-      historico: [{ id: crypto.randomUUID(), status_anterior: null, status_novo: d.status, alterado_por: currentUser, alterado_em: now }],
+  const { usuario: usuarioAutenticado } = useAuth();
+
+  const [demandas, setDemandas] = useState<Demanda[]>([]);
+  const [usuariosReais, setUsuariosReais] = useState<Usuario[]>([]);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!usuarioAutenticado) {
+      setDemandas([]);
+      setUsuariosReais([]);
+      setCarregando(false);
+      setErro(null);
+      return;
+    }
+
+    let ativo = true;
+
+    async function carregarDados() {
+      setCarregando(true);
+      setErro(null);
+
+      try {
+        const [usuariosAPI, demandasAPI] = await Promise.all([
+          listarUsuarios(),
+          listarDemandas(),
+        ]);
+
+        const demandasAdaptadas = demandasAPI.map((demanda) =>
+          adaptarDemanda(demanda, usuariosAPI)
+        );
+
+        if (ativo) {
+          setUsuariosReais(usuariosAPI);
+          setDemandas(demandasAdaptadas);
+        }
+      } catch (error) {
+        if (ativo) {
+          console.error("Erro ao carregar dados do FluxoOps:", error);
+          setErro("Não foi possível carregar os dados.");
+        }
+      } finally {
+        if (ativo) {
+          setCarregando(false);
+        }
+      }
+    }
+
+    carregarDados();
+
+    return () => {
+      ativo = false;
     };
-    setDemandas((prev) => [nova, ...prev]);
-  }, [currentUser]);
+  }, [usuarioAutenticado]);
 
-  const updateDemanda = useCallback((id: string, updates: Partial<Demanda>) => {
-    setDemandas((prev) =>
-      prev.map((d) => (d.id === id ? { ...d, ...updates, atualizado_em: new Date().toISOString() } : d))
+  const addDemanda = useCallback(async (
+    d: Omit<
+      Demanda,
+      "id" | "criado_em" | "atualizado_em" | "criador" | "comentarios" | "historico"
+    >
+  ): Promise<void> => {
+    const dados = {
+      titulo: d.titulo,
+      descricao: d.descricao,
+      categoria: d.categoria,
+      prioridade: d.prioridade,
+      responsavel_id: d.responsavel?.id ?? null,
+    };
+
+    const demandaCriada = await criarDemanda(dados);
+
+    const demandaAdaptada = adaptarDemanda(
+      demandaCriada,
+      usuariosReais
     );
-  }, []);
 
-  const deleteDemanda = useCallback((id: string) => {
-    setDemandas((prev) => prev.filter((d) => d.id !== id));
-  }, []);
+    setDemandas((prev) => [demandaAdaptada, ...prev]);
+  }, [usuariosReais]);
 
-  const addComentario = useCallback((demandaId: string, texto: string) => {
-    const comentario: Comentario = {
-      id: crypto.randomUUID(),
-      texto,
-      autor: currentUser,
-      criado_em: new Date().toISOString(),
+  const updateDemanda = useCallback(async (
+    id: string,
+    updates: Partial<Demanda>
+  ): Promise<void> => {
+    const dados = {
+      titulo: updates.titulo,
+      descricao: updates.descricao,
+      categoria: updates.categoria,
+      prioridade: updates.prioridade,
+      responsavel_id:
+        updates.responsavel === undefined
+          ? undefined
+          : updates.responsavel?.id ?? null,
     };
+
+    const demandaAtualizada = await atualizarDemanda(id, dados);
+
     setDemandas((prev) =>
-      prev.map((d) =>
-        d.id === demandaId ? { ...d, comentarios: [...d.comentarios, comentario], atualizado_em: new Date().toISOString() } : d
+      prev.map((demanda) =>
+        demanda.id === id
+          ? {
+              ...adaptarDemanda(demandaAtualizada, usuariosReais),
+              comentarios: demanda.comentarios,
+              historico: demanda.historico,
+            }
+          : demanda
       )
     );
-  }, [currentUser]);
+  }, [usuariosReais]);
 
-  const changeStatus = useCallback((demandaId: string, novoStatus: Status) => {
+  const deleteDemanda = useCallback(async (
+    id: string
+  ): Promise<void> => {
+    await excluirDemanda(id);
+
     setDemandas((prev) =>
-      prev.map((d) => {
-        if (d.id !== demandaId) return d;
-        const now = new Date().toISOString();
-        return {
-          ...d,
-          status: novoStatus,
-          atualizado_em: now,
-          historico: [
-            ...d.historico,
-            { id: crypto.randomUUID(), status_anterior: d.status, status_novo: novoStatus, alterado_por: currentUser, alterado_em: now },
-          ],
-        };
-      })
+      prev.filter((demanda) => demanda.id !== id)
     );
-  }, [currentUser]);
+  }, []);
+
+  const addComentario = useCallback(async (
+    demandaId: string,
+    texto: string
+  ): Promise<void> => {
+    const comentarioAPI = await criarComentario(demandaId, texto);
+
+    const comentarioAdaptado = adaptarComentario(
+      comentarioAPI,
+      usuariosReais
+    );
+
+    setDemandas((prev) =>
+      prev.map((demanda) =>
+        demanda.id === demandaId
+          ? {
+              ...demanda,
+              comentarios: [
+                ...demanda.comentarios,
+                comentarioAdaptado,
+              ],
+            }
+          : demanda
+      )
+    );
+  }, [usuariosReais]);
+
+  const carregarComentarios = useCallback(async (
+    demandaId: string
+  ): Promise<void> => {
+    const comentariosAPI = await listarComentarios(demandaId);
+
+    const comentariosAdaptados = comentariosAPI.map((comentario) =>
+      adaptarComentario(comentario, usuariosReais)
+    );
+
+    setDemandas((prev) =>
+      prev.map((demanda) =>
+        demanda.id === demandaId
+          ? {
+              ...demanda,
+              comentarios: comentariosAdaptados,
+            }
+          : demanda
+      )
+    );
+  }, [usuariosReais]);
+
+  const changeStatus = useCallback(async (
+    demandaId: string,
+    novoStatus: Status
+  ): Promise<void> => {
+    const demandaAtualizada = await atualizarDemanda(demandaId, {
+      status: novoStatus,
+    });
+
+    setDemandas((prev) =>
+      prev.map((d) =>
+        d.id === demandaId
+          ? {
+              ...d,
+              ...adaptarDemanda(demandaAtualizada, usuariosReais),
+              comentarios: d.comentarios,
+              historico: d.historico,
+            }
+          : d
+      )
+    );
+  }, [usuariosReais]);
+
+  const carregarHistorico = useCallback(async (
+    demandaId: string
+  ): Promise<void> => {
+    const historicoAPI = await listarHistorico(demandaId);
+
+    const historicoAdaptado = historicoAPI.map((registro) =>
+      adaptarHistorico(registro, usuariosReais)
+    );
+
+    setDemandas((prev) =>
+      prev.map((demanda) =>
+        demanda.id === demandaId
+          ? {
+              ...demanda,
+              historico: historicoAdaptado,
+            }
+          : demanda
+      )
+    );
+  }, [usuariosReais]);
 
   return (
-    <DemandasContext.Provider value={{ demandas, usuarios, currentUser, addDemanda, updateDemanda, deleteDemanda, addComentario, changeStatus }}>
+    <DemandasContext.Provider
+      value={{
+        demandas,
+        usuarios: usuariosReais,
+        carregando,
+        erro,
+        addDemanda,
+        updateDemanda,
+        deleteDemanda,
+        addComentario,
+        carregarComentarios,
+        changeStatus,
+        carregarHistorico,
+      }}
+    >
       {children}
     </DemandasContext.Provider>
   );

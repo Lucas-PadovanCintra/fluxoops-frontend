@@ -9,7 +9,39 @@ const STATUS_COLORS = ["hsl(199, 89%, 48%)", "hsl(38, 92%, 50%)", "hsl(0, 84%, 6
 const PRIORIDADE_COLORS = ["hsl(215, 16%, 47%)", "hsl(199, 89%, 48%)", "hsl(38, 92%, 50%)", "hsl(0, 84%, 60%)"];
 
 export default function Dashboard() {
-  const { demandas } = useDemandas();
+  const { demandas, carregando, erro } = useDemandas();
+
+  if (carregando) {
+    return (
+      <div
+        role="status"
+        className="flex min-h-[60vh] items-center justify-center"
+      >
+        <p className="text-muted-foreground">
+          Carregando dados do dashboard...
+        </p>
+      </div>
+    );
+  }
+
+  if (erro) {
+    return (
+      <div
+        role="alert"
+        className="rounded-lg border border-destructive/30 bg-destructive/5 p-6"
+      >
+        <h2 className="text-lg font-semibold text-destructive">
+          Erro ao carregar o dashboard
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          {erro}
+        </p>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Verifique a conexão com o servidor e atualize a página.
+        </p>
+      </div>
+    );
+  }
 
   const porStatus = [
     { name: "Aberta", value: demandas.filter((d) => d.status === "Aberta").length },
