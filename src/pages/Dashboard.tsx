@@ -1,4 +1,4 @@
-import { useDemandas } from "@/contexts/DemandasContext";
+import { useDemandas } from "@/contexts/useDemandas";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { DemandaCard } from "@/components/demandas/DemandaCard";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";

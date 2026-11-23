@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { useDemandas } from "@/contexts/DemandasContext";
+import { useDemandas } from "@/contexts/useDemandas";
 import { StatusBadge, PrioridadeBadge } from "@/components/demandas/StatusBadge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";

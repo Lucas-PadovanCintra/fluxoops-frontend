@@ -1,7 +1,5 @@
 
 import React, {
-  createContext,
-  useContext,
   useState,
   useCallback,
   useEffect,
@@ -20,24 +18,8 @@ import { listarUsuarios } from "@/services/usuarios";
 import { listarDemandas, criarDemanda, atualizarDemanda, listarHistorico, excluirDemanda } from "@/services/demandas";
 import { adaptarDemanda, adaptarHistorico, adaptarComentario } from "@/services/demandasAdapter";
 import { listarComentarios, criarComentario } from "@/services/comentarios";
-import { useAuth } from "@/contexts/AuthContext";
-
-
-interface DemandasContextType {
-  demandas: Demanda[];
-  usuarios: Usuario[];
-  carregando: boolean;
-  erro: string | null;
-  addDemanda: (d: Omit<Demanda, "id" | "criado_em" | "atualizado_em" | "criador" | "comentarios" | "historico">) => Promise<void>;
-  updateDemanda: (id: string, updates: Partial<Demanda>) => Promise<void>;
-  deleteDemanda: (id: string) => Promise<void>;
-  addComentario: (demandaId: string, texto: string) => Promise<void>;
-  carregarComentarios: (demandaId: string) => Promise<void>;
-  changeStatus: (demandaId: string, novoStatus: Status) => Promise<void>;
-  carregarHistorico: (demandaId: string) => Promise<void>;
-}
-
-const DemandasContext = createContext<DemandasContextType | null>(null);
+import { useAuth } from "@/contexts/useAuth";
+import { DemandasContext } from "./demandas-context";
 
 export function DemandasProvider({ children }: { children: React.ReactNode }) {
 
@@ -276,10 +258,4 @@ export function DemandasProvider({ children }: { children: React.ReactNode }) {
       {children}
     </DemandasContext.Provider>
   );
-}
-
-export function useDemandas() {
-  const ctx = useContext(DemandasContext);
-  if (!ctx) throw new Error("useDemandas must be used within DemandasProvider");
-  return ctx;
 }

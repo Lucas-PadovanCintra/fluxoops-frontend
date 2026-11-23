@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { useDemandas } from "@/contexts/DemandasContext";
+import { useDemandas } from "@/contexts/useDemandas";
 import { sugerirCategoriaEPrioridade } from "@/lib/sugestao";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -45,7 +45,7 @@ export default function NovaDemanda() {
     setResponsavelId(demandaExistente.responsavel?.id ?? "");
 
     demandaPreenchidaId.current = demandaExistente.id;
-  }, [modoEdicao, demandaExistente?.id]);
+  }, [modoEdicao, demandaExistente]);
 
   useEffect(() => {
     const text = `${titulo} ${descricao}`.trim();

@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { Link } from "react-router-dom";
-import { useDemandas } from "@/contexts/DemandasContext";
+import { useDemandas } from "@/contexts/useDemandas";
 import { DemandaCard } from "@/components/demandas/DemandaCard";
 import { DemandaFilters } from "@/components/demandas/DemandaFilters";
 import { Button } from "@/components/ui/button";
