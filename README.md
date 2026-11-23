@@ -40,6 +40,26 @@ Este repositório contém o **frontend**, desenvolvido com React, TypeScript e V
 
 As informações são obtidas por meio da API FastAPI. O frontend não depende de dados fictícios locais para executar as funcionalidades principais.
 
+## Capturas de tela
+
+### Dashboard
+
+Indicadores operacionais, distribuição de demandas por status e prioridade e atividades recentes.
+
+![Dashboard do FluxoOps](docs/screenshots/dashboard.png)
+
+### Gerenciamento de demandas
+
+Listagem de demandas com busca, filtros e informações de classificação e responsáveis.
+
+![Listagem de demandas do FluxoOps](docs/screenshots/demandas.png)
+
+### Detalhes da demanda
+
+Visualização de informações, histórico de alterações de status e comentários dos usuários.
+
+![Detalhes de uma demanda do FluxoOps](docs/screenshots/detalhes-demanda.png)
+
 ## Arquitetura
 
 O frontend organiza suas responsabilidades em páginas, componentes, contextos, serviços e tipos TypeScript.
@@ -63,7 +83,7 @@ Os contextos React gerenciam informações compartilhadas, como autenticação e
 
 ### Pré-requisitos
 
-- Node.js e npm.
+- Node.js 20.19+ ou 22.12+ (ou versões posteriores compatíveis) e npm.
 - Backend FluxoOps configurado e em execução.
 - PostgreSQL configurado para o backend.
 
@@ -122,7 +142,7 @@ npm run dev
 
 O Vite exibirá no terminal o endereço local da aplicação, normalmente:
 
-`http://localhost:5173`
+`http://localhost:8080`
 
 Acesse esse endereço no navegador.
 
@@ -160,21 +180,18 @@ A autenticação utiliza tokens JWT fornecidos pelo backend.
 
 ## Validação e build
 
-Para verificar os tipos TypeScript:
+O frontend utiliza ESLint para análise estática, TypeScript para verificação de tipos e Vitest para testes automatizados.
 
-```bash
-npx tsc --noEmit
-```
+Comandos disponíveis:
 
-Para gerar a versão de produção:
+- `npm run lint` — verifica o código com ESLint.
+- `npx tsc --noEmit` — verifica os tipos TypeScript.
+- `npm test` — executa os testes automatizados.
+- `npm run build` — gera a versão de produção no diretório `dist/`.
 
-```bash
-npm run build
-```
+Atualmente, existem quatro testes automatizados de autenticação e proteção de rotas. Eles verificam redirecionamento, acesso autenticado, carregamento e tratamento de erros.
 
-Os arquivos compilados são gerados no diretório `dist/`.
-
-Na última validação local, a verificação TypeScript e o build de produção foram concluídos com sucesso.
+Na última validação local, ESLint, TypeScript, os quatro testes e o build de produção foram concluídos com sucesso.
 
 ## Backend e testes
 
@@ -190,7 +207,7 @@ O desenvolvimento incluiu a substituição dos dados fictícios por requisiçõe
 
 ## Possíveis melhorias futuras
 
-- Testes automatizados de componentes e fluxos do frontend.
+- Ampliação da cobertura de testes automatizados para demandas, formulários e integração com a API.
 - Melhorias de acessibilidade.
 - Otimização do tamanho dos arquivos de produção.
 - Recuperação de senha.
